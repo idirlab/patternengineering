@@ -57,7 +57,7 @@ in [`experiments/README.md`](experiments/README.md).
 Each model directory under [`results/`](results/) contains:
 
 - `outputs.jsonl`: executor outputs and complete execution traces;
-- `evaluations.jsonl`: grounded GPT-4.1 scores;
+- `evaluations.jsonl`: output evaluations using GPT-4.1 as the judge;
 - `summary.json`: aggregate statistics used for the paper table.
 
 [`results/paper_table.csv`](results/paper_table.csv) collects the values shown in

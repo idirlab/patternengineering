@@ -4,7 +4,7 @@ This directory exposes only the agentic-executor runs reported in the paper.
 Each model directory contains:
 
 - `outputs.jsonl`: three executor outputs for each of the 24 tasks;
-- `evaluations.jsonl`: GPT-4.1 evaluations of those outputs;
+- `evaluations.jsonl`: output evaluations using GPT-4.1 as the judge;
 - `summary.json`: grouped statistics used for the paper table.
 
 `paper_table.csv` reproduces the values displayed in the paper. Historical `C`,
