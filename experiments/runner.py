@@ -70,7 +70,7 @@ def run_task(
     config: HarnessConfig,
     client: OpenAICompatibleClient,
 ) -> dict[str, Any]:
-    setup = "C"  # Historical label retained in released result records.
+    setup = "C"  # Matches the released result records.
     record = _base_record(task, setup, prompt_version_for())
     try:
         inputs = materialize_generator_inputs(config.project_root, task)

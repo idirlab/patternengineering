@@ -1,8 +1,6 @@
 # Agentic executor and evaluation code
 
-This directory contains the single executor evaluated in the paper. Historical
-single-prompt baselines and full-context retrieval variants are intentionally
-excluded from the public artifact.
+This directory contains the executor and evaluation code used in the paper.
 
 ## Directory map
 
@@ -15,13 +13,13 @@ excluded from the public artifact.
   experiment wrapper, not a second pipeline.
 - `task_construction.py`: discovers the study data and constructs Q1--Q3.
 - `task_inputs.py`: resolves task slot references to the supplied materials.
-- `evaluation.py`: report-span grounding, GPT-4.1 judge prompts, and scoring.
+- `evaluation.py`: report-span grounding, configurable model judge prompts, and scoring.
 - `reports.py`: overlapping report chunks and source-span recovery.
 - `client.py`, `config.py`, and `io_utils.py`: shared API, configuration, and
   file utilities.
 - `cli.py`: commands for constructing tasks and judging outputs.
-- `configs/`: the four reported generator settings and GPT-4.1 judge setting.
-- `tasks/`: the released material inventory and 24 concrete tasks.
+- `configs/`: the four generator settings and evaluation judge settings.
+- `tasks/`: the released material inventory and 36 concrete tasks.
 - `tests/`: tests for task construction, execution, grounding, evaluation, and
   repeated sampling.
 - `runs/`: ignored destination for newly generated outputs.
@@ -69,7 +67,7 @@ Judge and summarize those outputs:
 
 ```powershell
 $env:GROUNDING_SNAP_THRESHOLD = "0.8"
-python -m experiments.cli --config experiments/configs/judge-gpt-4.1.json judge `
+python -m experiments.cli --config experiments/configs/judge-gpt-6.1-terra.json judge `
   --outputs experiments/runs/gpt-4.1/outputs.jsonl `
   --output experiments/runs/gpt-4.1/evaluations.jsonl
 python -m experiments.sampling summarize `
@@ -77,7 +75,40 @@ python -m experiments.sampling summarize `
   --output experiments/runs/gpt-4.1/summary.json
 ```
 
-The paper outputs are published separately under [`../results/`](../results/).
-Their contents retain historical run metadata such as `"setup": "C"`,
-`"prompt_version": "v2-agentic"`, and `robustness_*`; these labels describe the
-original run records and do not denote additional public implementations.
+The paper outputs are available under [`../results/`](../results/).
+
+## Evaluation rubric
+
+The evaluation uses a 0–5 scale: 0 means missing or ungrounded; 1 incorrect
+or unrelated; 2 weakly related; 3 partially correct; 4 substantially correct
+with minor omissions or ambiguity; and 5 fully correct. Q1 compares grounded
+passages with M and accepts clear qualitative prose. Q2 compares passages
+directly with E.tab without a reference passage. Q3 assesses M and T separately
+against the four supplied example pairs, without canonical answers. The
+summarizer defaults to a success threshold of 4. Use a new output file for
+each judging run: judging appends to the output JSONL.
+
+## P3 experiment
+
+P3 uses the explicit task file rather than automatic task construction, preserving
+its three corpus inputs and Q3 example subsets. Its three Q1 corpora overlap,
+and its six examples derive from three reports. The passages are curated, not
+independent incidents. See [`../data/p3/README.md`](../data/p3/README.md).
+
+```powershell
+python -m experiments.sampling --config experiments/configs/gpt-5.6-luna.json run `
+  --tasks experiments/tasks/p3.jsonl --temperature 0.2 --samples 3 --max-attempts 3 `
+  --output experiments/runs/p3-new/outputs.jsonl --resume
+$env:GROUNDING_SNAP_THRESHOLD = "0.8"
+python -m experiments.cli --config experiments/configs/judge-gpt-6.1-terra.json judge `
+  --tasks experiments/tasks/p3.jsonl --outputs experiments/runs/p3-new/outputs.jsonl `
+  --output experiments/runs/p3-new/evaluations.jsonl
+python -m experiments.sampling summarize --evaluations experiments/runs/p3-new/evaluations.jsonl `
+  --output experiments/runs/p3-new/summary.json
+```
+
+The Q3 M judge evaluates whether a meaningful structural relationship is
+supported across the examples, allowing different valid generalizations.
+Judge output is appended; use a new output path for each run. P3 output
+records retain their original local `inputs_used` paths; equivalent materials
+are in `data/p3/`, and the task file is authoritative for evaluation.
